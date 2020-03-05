@@ -26,11 +26,6 @@ class OpenIdConnectAuthentication extends AuthenticatedConnection
     private $accessToken;
 
     /**
-     * @var int|null
-     */
-    protected $accessTokenExpiration;
-
-    /**
      * @var string
      */
     private $refreshToken;
@@ -90,25 +85,17 @@ class OpenIdConnectAuthentication extends AuthenticatedConnection
         );
     }
 
-    protected function hasAccessTokenExpired(): bool
-    {
-        return (new \DateTime)->format('U') <= $this->accessTokenExpiration;
-    }
-
     /**
      * @throws OAuthException
      * @throws InvalidAccessTokenException
      */
     protected function login(): void
     {
-        if ($this->accessToken === null || $this->hasAccessTokenExpired()) {
+        if ($this->accessToken === null) {
             $this->refreshToken();
-            $this->resetAllClients();
         }
 
         $validationResult = $this->validateToken();
-
-        $this->accessTokenExpiration = $validationResult['exp'];
         $this->cluster = $validationResult["twf.clusterUrl"];
     }
 
