@@ -95,8 +95,26 @@ class OpenIdConnectAuthentication extends AuthenticatedConnection
             $this->refreshToken();
         }
 
-        $validationResult = $this->validateToken();
+        try {
+            $validationResult = $this->validateToken();
+        } catch (InvalidAccessTokenException $ex) {
+            $validationResult = $this->recoverFromInvalidAccessToken();
+        }
+
         $this->cluster = $validationResult["twf.clusterUrl"];
+    }
+
+    /**
+     * @return array
+     * @throws \PhpTwinfield\Secure\Provider\InvalidAccessTokenException
+     * @throws \PhpTwinfield\Secure\Provider\OAuthException
+     */
+    protected function recoverFromInvalidAccessToken(): array
+    {
+        $this->refreshToken();
+        $this->resetAllClients();
+
+        return $this->validateToken();
     }
 
     /**
